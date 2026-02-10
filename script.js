@@ -1670,3 +1670,50 @@ window.testerAPI = function() {
     
     showNotification('Tests API exécutés - voir console', 'info');
 };
+
+
+
+// migrations/setup-search-engine.js
+const { Pool } = require('pg')
+const fs = require('fs').promises
+const path = require('path')
+
+async function setupSearchEngine() {
+  console.log('🚀 Configuration du moteur de recherche Yetumia...')
+  
+  const pool = new Pool({
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
+  })
+  
+  try {
+    // Lire le fichier SQL
+    const sqlPath = path.join(__dirname, 'search-engine-setup.sql')
+    const sql = await fs.readFile(sqlPath, 'utf8')
+    
+    console.log('📦 Installation des extensions PostgreSQL...')
+    await pool.query(sql)
+    
+    console.log('✅ Moteur configuré avec succès!')
+    console.log('')
+    console.log('🎯 Points clés activés:')
+    console.log('   • pg_trgm pour la recherche floue')
+    console.log('   • unaccent pour normalisation')
+    console.log('   • Index GIN optimisés')
+    console.log('   • Fonctions de recherche avancées')
+    console.log('   • Système de logs intégré')
+    console.log('')
+    console.log('🔥 Prêt pour 1M+ mots!')
+    
+  } catch (err) {
+    console.error('❌ Erreur lors de la configuration:', err)
+    process.exit(1)
+  } finally {
+    await pool.end()
+  }
+}
+
+setupSearchEngine()
