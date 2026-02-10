@@ -234,53 +234,36 @@ async function addWordToDatabase(motSwahili, traductionFr) {
 }
 
 // Fonction principale de recherche
-async function searchAPI(query) {
+async function searchWord(word) {
+    console.log(`🔍 Recherche API: "${word}"`);
+    
     try {
-        console.log('🔍 Recherche principale pour:', query);
-
-        // Rechercher dans votre backend
-        const apiData = await searchWord(query);
-
-        console.log('📦 Données API:', apiData);
-
-        if (apiData && apiData.length > 0) {
-            // Formater les résultats
-            const formattedResults = apiData.map(item => ({
-                id: item.id || Date.now() + Math.random(),
-                word: item.mot_swahili,
-                translation: item.traduction_fr,
-                dialect: 'Ki Swahili',
-                phonetic: item.prononciation_api || '',
-                category: item.categorie_semantique || '',
-                grammatical: item.categorie_grammaticale || '',
-                difficulty: item.niveau_difficulte || '',
-                source: 'backend'
-            }));
-
-            return {
-                success: true,
-                results: formattedResults,
-                count: formattedResults.length,
-                source: 'backend'
-            };
-        } else {
-            return {
-                success: false,
-                results: [],
-                count: 0
-            };
+        // 🔥 ESSAIE PLUSIEURS ENDPOINTS
+        let endpoints = [
+            `/api/search?q=${encodeURIComponent(word)}&mode=autocomplete`,
+            `/api/mot/${encodeURIComponent(word)}`,
+            `/mot/${encodeURIComponent(word)}`
+        ];
+        
+        let response = null;
+        let lastError = null;
+        
+        for (let endpoint of endpoints) {
+            try {
+                console.log(`🔄 Essai: ${endpoint}`);
+                response = await fetch(endpoint);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`✅ Succès avec: ${endpoint}`, data);
+                    return data;
+                }
+            } catch (err) {
+                lastError = err;
+                console.warn(`⚠️ Échec avec ${endpoint}:`, err.message);
+                continue;
+            }
         }
-
-    } catch (error) {
-        console.error('❌ Erreur recherche API:', error);
-        return {
-            success: false,
-            results: [],
-            error: error.message
-        };
-    }
-}
-
 // ===== INITIALISATION =====
 function init() {
     try {
@@ -1717,3 +1700,4 @@ async function setupSearchEngine() {
 }
 
 setupSearchEngine()
+
